@@ -3,7 +3,7 @@
 // Development environment settings
 const DEV_CONFIG = {
   useBackend: true, // Always use real backend API
-  apiBaseUrl: "http://localhost:3000/api", // Default backend API URL
+  apiBaseUrl: "https://tenders-backend.onrender.com/api", // Default backend API URL
   simulateNetworkDelay: 0, // No simulated delay
 };
 
@@ -11,7 +11,7 @@ const DEV_CONFIG = {
 const PROD_CONFIG = {
   useBackend: true, // Always use real backend in production
   apiBaseUrl:
-    import.meta.env.VITE_API_URL || "https://api.tenders.example.com/api",
+    import.meta.env.VITE_API_URL || "https://tenders-backend.onrender.com/api",
   simulateNetworkDelay: 0, // No simulated delay in production
 };
 
