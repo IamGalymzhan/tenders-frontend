@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import api from "../utils/api";
+import UserService from "../services/UserService";
 
 const AuthContext = createContext();
 
@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check if user is already logged in (e.g., from localStorage)
+    // Check if user is already logged in from localStorage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
@@ -20,51 +20,99 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("user");
       }
     }
+
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
+
     try {
-      // Using the configured api instance instead of axios directly
-      const response = await api.post("/auth/login", { email, password });
-      const userData = response.data;
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-      return userData;
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-      throw err;
-    } finally {
+      const loggedInUser = await UserService.login(email, password);
+      setUser(loggedInUser);
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
       setLoading(false);
+      return loggedInUser;
+    } catch (err) {
+      setError(err.message || "Login failed");
+      setLoading(false);
+      throw err;
     }
   };
 
   const register = async (full_name, email, password) => {
     setLoading(true);
     setError(null);
+
     try {
-      // Using the configured api instance instead of axios directly
-      const response = await api.post("/auth/signup", {
-        full_name,
+      const userData = {
         email,
         password,
-      });
-      return response.data;
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-      throw err;
-    } finally {
+        full_name,
+      };
+
+      const registeredUser = await UserService.register(userData);
+
+      // Automatically log in the user after registration
+      setUser(registeredUser);
+      localStorage.setItem("user", JSON.stringify(registeredUser));
+
       setLoading(false);
+      return registeredUser;
+    } catch (err) {
+      setError(err.message || "Registration failed");
+      setLoading(false);
+      throw err;
     }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
-    // You might want to call an API endpoint to invalidate the token on the server
-    // api.post("/auth/logout");
+  };
+
+  const updateProfile = async (userData) => {
+    if (!user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const updatedUser = await UserService.updateUserProfile(
+        user.id,
+        userData
+      );
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setLoading(false);
+      return updatedUser;
+    } catch (err) {
+      setError(err.message || "Failed to update profile");
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    if (!user) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await UserService.changePassword(user.id, currentPassword, newPassword);
+      setLoading(false);
+      return true;
+    } catch (err) {
+      setError(err.message || "Failed to change password");
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  const isAdmin = () => {
+    return user && user.role === "admin";
   };
 
   const value = {
@@ -74,6 +122,9 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateProfile,
+    changePassword,
+    isAdmin,
     isAuthenticated: !!user,
   };
 

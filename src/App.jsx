@@ -18,6 +18,12 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 
+// Tender System Pages
+import Tenders from "./pages/Tenders";
+import TenderDetail from "./pages/TenderDetail";
+import TenderForm from "./pages/TenderForm";
+import MySubscriptions from "./pages/MySubscriptions";
+
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -37,6 +43,29 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Admin route component
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!isAdmin()) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <Router>
@@ -45,6 +74,10 @@ function App() {
           {/* Public routes */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
+
+            {/* Public Tenders Routes */}
+            <Route path="/tenders" element={<Tenders />} />
+            <Route path="/tenders/:id" element={<TenderDetail />} />
           </Route>
 
           {/* Auth routes */}
@@ -64,6 +97,30 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="subscriptions" element={<MySubscriptions />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route
+            path="/tenders/new"
+            element={
+              <AdminRoute>
+                <MainLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<TenderForm />} />
+          </Route>
+
+          <Route
+            path="/tenders/:id/edit"
+            element={
+              <AdminRoute>
+                <MainLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<TenderForm />} />
           </Route>
 
           {/* Catch all route */}

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const Profile = () => {
-  const { user } = useAuth();
-  const [name, setName] = useState(user?.name || "");
+  const { user, updateProfile, changePassword } = useAuth();
+  const { t } = useTranslation();
+  const [name, setName] = useState(user?.full_name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -19,15 +21,10 @@ const Profile = () => {
     setIsLoading(true);
 
     try {
-      // In a real app, this would be an API call
-      // await api.put('/api/user/profile', { name, email });
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setMessage("Profile updated successfully!");
+      await updateProfile({ full_name: name });
+      setMessage(t("profileUpdated"));
     } catch (err) {
-      setError("Failed to update profile. Please try again.");
+      setError(t("failedToUpdateProfile"));
     } finally {
       setIsLoading(false);
     }
@@ -39,27 +36,20 @@ const Profile = () => {
     setError("");
 
     if (newPassword !== confirmPassword) {
-      setError("New passwords do not match");
+      setError(t("passwordsDoNotMatch"));
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // In a real app, this would be an API call
-      // await api.put('/api/user/password', { currentPassword, newPassword });
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setMessage("Password changed successfully!");
+      await changePassword(currentPassword, newPassword);
+      setMessage(t("passwordChanged"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setError(
-        "Failed to change password. Please check your current password."
-      );
+      setError(t("failedToChangePassword"));
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +58,7 @@ const Profile = () => {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-900 mb-6">
-        Profile Settings
+        {t("profileSettings")}
       </h1>
 
       {message && (
@@ -94,10 +84,10 @@ const Profile = () => {
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900">
-            Personal Information
+            {t("personalInformation")}
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Update your personal details
+            {t("updatePersonalDetails")}
           </p>
         </div>
         <div className="border-t border-gray-200">
@@ -108,7 +98,7 @@ const Profile = () => {
                   htmlFor="name"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Full name
+                  {t("fullName")}
                 </label>
                 <input
                   type="text"
@@ -117,7 +107,7 @@ const Profile = () => {
                   autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
 
@@ -126,7 +116,7 @@ const Profile = () => {
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Email address
+                  {t("emailAddress")}
                 </label>
                 <input
                   type="email"
@@ -135,7 +125,7 @@ const Profile = () => {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
             </div>
@@ -143,9 +133,9 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50"
               >
-                {isLoading ? "Saving..." : "Save"}
+                {isLoading ? t("saving") : t("save")}
               </button>
             </div>
           </form>
@@ -154,9 +144,11 @@ const Profile = () => {
 
       <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
-          <h2 className="text-lg font-medium text-gray-900">Change Password</h2>
+          <h2 className="text-lg font-medium text-gray-900">
+            {t("changePassword")}
+          </h2>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Update your password
+            {t("updatePassword")}
           </p>
         </div>
         <div className="border-t border-gray-200">
@@ -167,7 +159,7 @@ const Profile = () => {
                   htmlFor="current-password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Current Password
+                  {t("currentPassword")}
                 </label>
                 <input
                   type="password"
@@ -176,7 +168,7 @@ const Profile = () => {
                   autoComplete="current-password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
 
@@ -185,7 +177,7 @@ const Profile = () => {
                   htmlFor="new-password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  New Password
+                  {t("newPassword")}
                 </label>
                 <input
                   type="password"
@@ -194,7 +186,7 @@ const Profile = () => {
                   autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
 
@@ -203,7 +195,7 @@ const Profile = () => {
                   htmlFor="confirm-password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Confirm New Password
+                  {t("confirmNewPassword")}
                 </label>
                 <input
                   type="password"
@@ -212,7 +204,7 @@ const Profile = () => {
                   autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="mt-1 focus:ring-sky-500 focus:border-sky-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
             </div>
@@ -220,9 +212,9 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50"
               >
-                {isLoading ? "Changing..." : "Change Password"}
+                {isLoading ? t("changing") : t("changePassword")}
               </button>
             </div>
           </form>
