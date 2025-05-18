@@ -14,4 +14,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ["tenders-frontend.onrender.com"],
+  },
 });
