@@ -11,17 +11,97 @@ const Tenders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [minBudget, setMinBudget] = useState("");
+  const [maxBudget, setMaxBudget] = useState("");
+  const [deadlineFilter, setDeadlineFilter] = useState("");
+  const [createdAfterFilter, setCreatedAfterFilter] = useState("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
     const fetchTenders = async () => {
       try {
         setLoading(true);
-        const data = await TenderService.searchTenders({
-          searchTerm,
-          category: selectedCategory,
-          status: selectedStatus,
-        });
+        let data;
+
+        if (searchTerm) {
+          // If there's a search term, use searchTenders
+          data = await TenderService.searchTenders(searchTerm);
+
+          // Apply filters to the search results if needed
+          if (selectedCategory !== "All") {
+            data = data.filter(
+              (tender) => tender.category === selectedCategory
+            );
+          }
+
+          if (selectedStatus !== "All") {
+            data = data.filter((tender) => tender.status === selectedStatus);
+          }
+
+          // Apply budget filters
+          if (minBudget) {
+            data = data.filter((tender) => tender.budget >= Number(minBudget));
+          }
+
+          if (maxBudget) {
+            data = data.filter((tender) => tender.budget <= Number(maxBudget));
+          }
+
+          // Apply date filters
+          if (deadlineFilter) {
+            data = data.filter(
+              (tender) => new Date(tender.deadline) >= new Date(deadlineFilter)
+            );
+          }
+
+          if (createdAfterFilter) {
+            data = data.filter(
+              (tender) =>
+                new Date(tender.createdAt) >= new Date(createdAfterFilter)
+            );
+          }
+        } else if (
+          selectedCategory !== "All" ||
+          selectedStatus !== "All" ||
+          minBudget ||
+          maxBudget ||
+          deadlineFilter ||
+          createdAfterFilter
+        ) {
+          // If only filters are applied, use filterTenders
+          const filters = {};
+
+          if (selectedCategory !== "All") {
+            filters.category = selectedCategory;
+          }
+
+          if (selectedStatus !== "All") {
+            filters.status = selectedStatus;
+          }
+
+          if (minBudget) {
+            filters.minBudget = Number(minBudget);
+          }
+
+          if (maxBudget) {
+            filters.maxBudget = Number(maxBudget);
+          }
+
+          if (deadlineFilter) {
+            filters.deadlineAfter = deadlineFilter;
+          }
+
+          if (createdAfterFilter) {
+            filters.createdAfter = createdAfterFilter;
+          }
+
+          data = await TenderService.filterTenders(filters);
+        } else {
+          // Get all tenders if no filters or search
+          data = await TenderService.getAllTenders();
+        }
+
         setTenders(data);
         setError(null);
       } catch (err) {
@@ -33,7 +113,26 @@ const Tenders = () => {
     };
 
     fetchTenders();
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [
+    searchTerm,
+    selectedCategory,
+    selectedStatus,
+    minBudget,
+    maxBudget,
+    deadlineFilter,
+    createdAfterFilter,
+  ]);
+
+  // Reset all filters
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("All");
+    setSelectedStatus("All");
+    setMinBudget("");
+    setMaxBudget("");
+    setDeadlineFilter("");
+    setCreatedAfterFilter("");
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -166,6 +265,134 @@ const Tenders = () => {
               </button>
             </div>
           </div>
+
+          {/* Advanced Filters Toggle Button */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="text-sm flex items-center text-sky-600 hover:text-sky-800 font-medium"
+            >
+              {showAdvancedFilters ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+              {showAdvancedFilters
+                ? t("hideAdvancedFilters") || "Hide Advanced Filters"
+                : t("showAdvancedFilters") || "Show Advanced Filters"}
+            </button>
+          </div>
+
+          {/* Advanced Filters Section */}
+          {showAdvancedFilters && (
+            <div className="pt-4 border-t border-gray-200 transition-all duration-300 ease-in-out">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t("advancedFilters") || "Advanced Filters"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="text-sm text-sky-600 hover:text-sky-800"
+                >
+                  {t("resetFilters") || "Reset All Filters"}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Budget Range Filter */}
+                <div>
+                  <label
+                    htmlFor="minBudget"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t("minBudget") || "Min Budget (KZT)"}
+                  </label>
+                  <input
+                    type="number"
+                    id="minBudget"
+                    value={minBudget}
+                    onChange={(e) => setMinBudget(e.target.value)}
+                    placeholder="0"
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="maxBudget"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t("maxBudget") || "Max Budget (KZT)"}
+                  </label>
+                  <input
+                    type="number"
+                    id="maxBudget"
+                    value={maxBudget}
+                    onChange={(e) => setMaxBudget(e.target.value)}
+                    placeholder="1000000000"
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                  />
+                </div>
+
+                {/* Date Filters */}
+                <div>
+                  <label
+                    htmlFor="deadlineFilter"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t("deadlineAfter") || "Deadline After"}
+                  </label>
+                  <input
+                    type="date"
+                    id="deadlineFilter"
+                    value={deadlineFilter}
+                    onChange={(e) => setDeadlineFilter(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="createdAfterFilter"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t("createdAfter") || "Created After"}
+                  </label>
+                  <input
+                    type="date"
+                    id="createdAfterFilter"
+                    value={createdAfterFilter}
+                    onChange={(e) => setCreatedAfterFilter(e.target.value)}
+                    className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </form>
       </div>
 

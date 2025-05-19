@@ -123,6 +123,14 @@ class TenderServiceSimulated {
       setTimeout(() => {
         const tenders = JSON.parse(localStorage.getItem("tenders")) || [];
 
+        // Handle if query is string or object
+        const searchString =
+          typeof query === "string"
+            ? query
+            : query && query.searchTerm
+            ? query.searchTerm
+            : "";
+
         // Case insensitive search across title and description
         const results = tenders.filter((tender) => {
           const searchableText = (
@@ -135,7 +143,7 @@ class TenderServiceSimulated {
             tender.category
           ).toLowerCase();
 
-          return searchableText.includes(query.toLowerCase());
+          return searchableText.includes(searchString.toLowerCase());
         });
 
         resolve(results);
@@ -149,12 +157,22 @@ class TenderServiceSimulated {
       setTimeout(() => {
         let tenders = JSON.parse(localStorage.getItem("tenders")) || [];
 
-        if (filters.category && filters.category !== "all") {
+        if (
+          filters.category &&
+          filters.category !== "all" &&
+          filters.category !== "All"
+        ) {
           tenders = tenders.filter((t) => t.category === filters.category);
         }
 
-        if (filters.status && filters.status !== "all") {
-          tenders = tenders.filter((t) => t.status === filters.status);
+        if (
+          filters.status &&
+          filters.status !== "all" &&
+          filters.status !== "All"
+        ) {
+          tenders = tenders.filter(
+            (t) => t.status === filters.status.toLowerCase()
+          );
         }
 
         if (filters.minBudget) {
@@ -163,6 +181,18 @@ class TenderServiceSimulated {
 
         if (filters.maxBudget) {
           tenders = tenders.filter((t) => t.budget <= filters.maxBudget);
+        }
+
+        // Handle deadline date filter
+        if (filters.deadlineAfter) {
+          const deadlineDate = new Date(filters.deadlineAfter);
+          tenders = tenders.filter((t) => new Date(t.deadline) >= deadlineDate);
+        }
+
+        // Handle created date filter
+        if (filters.createdAfter) {
+          const createdDate = new Date(filters.createdAfter);
+          tenders = tenders.filter((t) => new Date(t.createdAt) >= createdDate);
         }
 
         resolve(tenders);

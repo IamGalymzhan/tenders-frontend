@@ -129,5 +129,14 @@
   "featureStreamlinedDesc": "A simple and efficient process for government agencies to publish and manage tenders.",
   
   "footerTagline": "Connecting businesses with opportunities",
-  "allRightsReserved": "All rights reserved"
+  "allRightsReserved": "All rights reserved",
+  
+  "advancedFilters": "Advanced Filters",
+  "resetFilters": "Reset All Filters",
+  "minBudget": "Min Budget (KZT)",
+  "maxBudget": "Max Budget (KZT)",
+  "deadlineAfter": "Deadline After",
+  "createdAfter": "Created After",
+  "showAdvancedFilters": "Show Advanced Filters",
+  "hideAdvancedFilters": "Hide Advanced Filters"
 } 

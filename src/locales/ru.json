@@ -128,6 +128,15 @@
   "featureStreamlined": "Оптимизированный процесс",
   "featureStreamlinedDesc": "Простой и эффективный процесс для государственных учреждений по публикации и управлению тендерами.",
   
-  "footerTagline": "Связываем бизнес с возможностями",
-  "allRightsReserved": "Все права защищены"
+  "footerTagline": "Соединяем бизнес с возможностями",
+  "allRightsReserved": "Все права защищены",
+  
+  "advancedFilters": "Расширенные фильтры",
+  "resetFilters": "Сбросить все фильтры",
+  "minBudget": "Мин. бюджет (KZT)",
+  "maxBudget": "Макс. бюджет (KZT)",
+  "deadlineAfter": "Срок окончания после",
+  "createdAfter": "Создано после",
+  "showAdvancedFilters": "Показать расширенные фильтры",
+  "hideAdvancedFilters": "Скрыть расширенные фильтры"
 } 
